@@ -24,7 +24,8 @@ func InitDB() {
 	var err error
 
 	if endpoint != "" {
-		log.Log.Info("🌱 连接本地 DynamoDB (local mode)")
+		log.Log.Info("🧪 连接本地 DynamoDB (local mode)")
+		log.Log.Infof("🔌 使用 endpoint: %s", endpoint)
 
 		// 设置本地模拟器的 endpoint
 		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {

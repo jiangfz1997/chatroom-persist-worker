@@ -39,8 +39,9 @@ func init() {
 }
 
 func StartRedisToDBSyncLoop() {
+
 	ticker := time.NewTicker(persistTickerInterval)
-	log.Log.Infof("🌀 持久化任务启动，每%d执行一次", persistTickerInterval)
+	log.Log.Infof("🌀 持久化任务启动，每 %v s执行一次", persistTickerInterval)
 	for range ticker.C {
 		syncAllRooms()
 	}
