@@ -24,7 +24,6 @@ func InitDB() {
 	var err error
 
 	if endpoint != "" {
-		endpoint := "http://localhost:8000" // 本地 DynamoDB
 		log.Println("🌱 连接本地 DynamoDB (local mode)")
 
 		// 设置本地模拟器的 endpoint
