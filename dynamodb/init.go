@@ -19,6 +19,9 @@ func InitDB() {
 	region := os.Getenv("DYNAMODB_REGION")
 	if region == "" {
 		region = "us-west-2" // fallback
+		log.Log.Warn("⚠️ DYNAMODB_REGION 未设置，默认使用 us-west-2")
+	} else {
+		log.Log.Infof("🌐 DYNAMODB_REGION 已设置 = %s", region)
 	}
 	var cfg aws.Config
 	var err error
