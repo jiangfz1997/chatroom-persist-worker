@@ -17,13 +17,13 @@ type Message struct {
 	Text      string `json:"text" dynamodbav:"text"`
 }
 
-func NewMessage(roomID, sender, text string) Message {
+func NewMessage(roomID, sender, timestamps, text string) Message {
 	return Message{
 		//ID:        uuid.New().String(),
 		RoomID:    roomID,
 		Sender:    sender,
 		Text:      text,
-		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+		Timestamp: timestamps,
 	}
 }
 

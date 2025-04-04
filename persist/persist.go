@@ -72,15 +72,17 @@ func syncRoomMessages(roomID string) {
 
 func saveToDatabase(roomID string, rawMsg string) {
 	var data struct {
-		Sender string `json:"sender"`
-		Text   string `json:"text"`
+		Sender    string `json:"sender"`
+		Text      string `json:"text"`
+		RoomID    string `json:"roomID"`
+		TimeStamp string `json:"sentAt"`
 	}
 	if err := json.Unmarshal([]byte(rawMsg), &data); err != nil {
 		log.Log.Errorf("⚠️ JSON 解析失败:", err)
 		return
 	}
 
-	msg := dynamodb.NewMessage(roomID, data.Sender, data.Text)
+	msg := dynamodb.NewMessage(data.RoomID, data.Sender, data.TimeStamp, data.Text)
 	if err := dynamodb.SaveMessage(msg); err != nil {
 		log.Log.Errorf("❌ DynamoDB 存储失败: %v", err)
 	} else {
