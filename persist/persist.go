@@ -29,19 +29,19 @@ func init() {
 	} else {
 		n, err := strconv.Atoi(val)
 		if err != nil {
-			log.Log.Warnf("⚠️ 无法解析 PERSISTTICKER=%s，使用默认 30s", val)
+			log.Log.Warnf("⚠️ Cannot get PERSISTTICKER=%s，default 30s", val)
 			n = 30
 		}
 		persistTickerInterval = time.Duration(n) * time.Second
 	}
 
-	log.Log.Infof("🕒 持久化间隔设置为: %v", persistTickerInterval)
+	log.Log.Infof("🕒 Process interval: %v", persistTickerInterval)
 }
 
 func StartRedisToDBSyncLoop() {
 
 	ticker := time.NewTicker(persistTickerInterval)
-	log.Log.Infof("🌀 持久化任务启动，每 %v s执行一次", persistTickerInterval)
+	log.Log.Infof("🌀 Persist work activated，process every %v second", persistTickerInterval)
 	for range ticker.C {
 		syncAllRooms()
 	}
@@ -59,11 +59,11 @@ func syncRoomMessages(roomID string) {
 	for i := 0; i < 100; i++ {
 		msg, err := Rdb.LPop(ctx, key).Result()
 		if errors.Is(err, redis.Nil) {
-			log.Log.Infof("✅ 房间 [%s] 消息队列已空", roomID)
+			//log.Log.Infof("✅ room [%s] msg list empty", roomID)
 			break
 		}
 		if err != nil {
-			log.Log.Warnf("❌ Redis LPOP 出错: %v", err)
+			log.Log.Warnf("Redis LPOP error: %v", err)
 			break
 		}
 		saveToDatabase(roomID, msg)
@@ -78,22 +78,22 @@ func saveToDatabase(roomID string, rawMsg string) {
 		TimeStamp string `json:"sentAt"`
 	}
 	if err := json.Unmarshal([]byte(rawMsg), &data); err != nil {
-		log.Log.Errorf("⚠️ JSON 解析失败:", err)
+		log.Log.Errorf("⚠️ JSON parse failed: %v", err)
 		return
 	}
 
 	msg := dynamodb.NewMessage(data.RoomID, data.Sender, data.TimeStamp, data.Text)
 	if err := dynamodb.SaveMessage(msg); err != nil {
-		log.Log.Errorf("❌ DynamoDB 存储失败: %v", err)
+		log.Log.Errorf("DynamoDB saved failed: %v", err)
 	} else {
-		log.Log.Infof("✅ 成功写入 DynamoDB: [%s] %s", data.Sender, data.Text)
+		log.Log.Infof("DynamoDB saved success: [%s] %s", data.Sender, data.Text)
 	}
 }
 
 func getAllRoomIDs() []string {
 	roomIDs, err := Rdb.SMembers(ctx, "rooms:active").Result()
 	if err != nil {
-		log.Log.Errorf("❌ 无法获取活跃房间列表: %v", err)
+		log.Log.Errorf("Can not get active room list: %v", err)
 		return []string{}
 	}
 	return roomIDs

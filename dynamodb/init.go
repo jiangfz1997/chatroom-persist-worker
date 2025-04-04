@@ -15,22 +15,21 @@ import (
 var DB *ddb.Client
 
 func InitDB() {
-	endpoint := os.Getenv("DYNAMODB_ENDPOINT") // 本地模式會設這個
+	endpoint := os.Getenv("DYNAMODB_ENDPOINT")
 	region := os.Getenv("DYNAMODB_REGION")
 	if region == "" {
-		region = "us-west-2" // fallback
-		log.Log.Warn("⚠️ DYNAMODB_REGION 未设置，默认使用 us-west-2")
+		region = "us-west-2"
+		log.Log.Warn("DYNAMODB_REGION not set，default us-west-2")
 	} else {
-		log.Log.Infof("🌐 DYNAMODB_REGION 已设置 = %s", region)
+		log.Log.Infof("DYNAMODB_REGION set = %s", region)
 	}
 	var cfg aws.Config
 	var err error
 
 	if endpoint != "" {
-		log.Log.Info("🧪 连接本地 DynamoDB (local mode)")
-		log.Log.Infof("🔌 使用 endpoint: %s", endpoint)
+		log.Log.Info("local DynamoDB (local mode)")
+		log.Log.Infof("Using endpoint: %s", endpoint)
 
-		// 设置本地模拟器的 endpoint
 		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {
 			if service == ddb.ServiceID {
 				return aws.Endpoint{
@@ -41,7 +40,6 @@ func InitDB() {
 			return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
 		})
 
-		// 加载配置，添加本地用的 dummy 凭证
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
 			config.WithRegion(region),
 			config.WithEndpointResolverWithOptions(customResolver),
@@ -50,40 +48,38 @@ func InitDB() {
 		log.Log.Infof("📦 DynamoDB Config Loaded | Region: %s", cfg.Region)
 
 		if cfg.Retryer != nil {
-			log.Log.Info("🔁 Retryer 已配置（重试机制启用）")
+			log.Log.Info("🔁 Retryer setup")
 		}
 
 		if cfg.Credentials != nil {
 			creds, err := cfg.Credentials.Retrieve(context.TODO())
 			if err != nil {
-				log.Log.Warnf("⚠️ 获取凭证失败: %v", err)
+				log.Log.Warnf("Failed to get credentials: %v", err)
 			} else {
-				log.Log.Infof("🔐 使用的凭证：AccessKey=%s (Provider=%s)", creds.AccessKeyID, creds.Source)
+				log.Log.Infof("Credentials：AccessKey=%s (Provider=%s)", creds.AccessKeyID, creds.Source)
 			}
 		}
 		if err != nil {
-			log.Log.Fatal("❌ 加载本地 DynamoDB 配置失败:", err)
+			log.Log.Fatalf("Failed to load local DynamoDB cfg: %v", err)
 		}
 
 	} else {
-		log.Log.Info("🚀 连接 AWS DynamoDB（真实云服务）")
-		// 加载默认配置，依赖环境变量或 IAM 角色
+		log.Log.Info("Connect to AWS DynamoDB")
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
 			config.WithRegion(region),
 		)
 		if err != nil {
-			log.Log.Fatalf("❌ 加载 AWS 配置失败:", err)
+			log.Log.Fatalf("Failed to load AWS cfg: %v", err)
 		}
 	}
 
-	// 创建 DynamoDB 客户端
 	DB = ddb.NewFromConfig(cfg)
 	log.Log.Info("Connected to DynamoDB")
 
 	resp, err := DB.ListTables(context.TODO(), &ddb.ListTablesInput{})
 	if err != nil {
-		log.Log.Errorf("⚠️ 无法列出表，连接可能有误: %v", err)
+		log.Log.Errorf("Failed to get tables : %v", err)
 	} else {
-		log.Log.Infof("📋 当前 DynamoDB 表: %v", resp.TableNames)
+		log.Log.Infof("Current talbe in dynamodb: %v", resp.TableNames)
 	}
 }

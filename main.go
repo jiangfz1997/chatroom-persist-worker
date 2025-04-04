@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	logger.InitLogger() // 初始化日志系统
-	log := logger.Log   // 使用自定义 logrus 实例
+	logger.InitLogger()
+	log := logger.Log
 	log.Info("Starting persist Worker")
 	err := godotenv.Load()
 	if err != nil {
